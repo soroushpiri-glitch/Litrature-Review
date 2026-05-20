@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Research Finder — Find Articles That Support Your Claim</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Lato:wght@300;400;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink: #0f0e0c;
+      --paper: #f5f0e8;
+      --cream: #ede7d9;
+      --accent: #c0392b;
+      --accent2: #1a4a6b;
+      --gold: #b8860b;
+      --muted: #7a7060;
+      --card-bg: #faf7f2;
+      --border: #d4ccc0;
+      --shadow: rgba(15,14,12,0.1);
+    }
+
+    html { font-size: 16px; scroll-behavior: smooth; }
+
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: 'Lato', sans-serif;
+      font-weight: 300;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--ink);
+      color: var(--paper);
+      padding: 2.5rem 2rem 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    header::before {
+      content: '';
+      position: absolute;
+      top: -60px; right: -60px;
+      width: 220px; height: 220px;
+      border: 2px solid rgba(245,240,232,0.08);
+      border-radius: 50%;
+    }
+    header::after {
+      content: '';
+      position: absolute;
+      bottom: -80px; left: 40%;
+      width: 300px; height: 300px;
+      border: 1px solid rgba(245,240,232,0.05);
+      border-radius: 50%;
+    }
+    .header-inner { max-width: 820px; margin: 0 auto; position: relative; z-index: 1; }
+    .logo-line {
+      display: flex; align-items: center; gap: 0.75rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(245,240,232,0.5);
+      margin-bottom: 1rem;
+    }
+    .logo-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+    h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 400;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.75rem;
+    }
+    h1 em { font-style: italic; color: rgba(245,240,232,0.6); }
+    .subtitle {
+      font-size: 0.95rem;
+      color: rgba(245,240,232,0.55);
+      font-weight: 300;
+      max-width: 500px;
+      line-height: 1.6;
+    }
+
+    /* ── MAIN ── */
+    main { max-width: 820px; margin: 0 auto; padding: 2.5rem 2rem 4rem; }
+
+    /* ── API KEY SECTION ── */
+    .api-section {
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .api-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .api-input-wrap { flex: 1; min-width: 200px; position: relative; }
+    .api-input {
+      width: 100%;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.85rem;
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 0.55rem 0.85rem;
+      color: var(--ink);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .api-input:focus { border-color: var(--accent2); }
+    .api-status {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .api-status.ok { color: #2a7a2a; }
+
+    /* ── SEARCH BOX ── */
+    .search-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2rem;
+      margin-bottom: 2.5rem;
+      box-shadow: 0 2px 12px var(--shadow);
+    }
+    .field-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.6rem;
+      display: block;
+    }
+    textarea {
+      width: 100%;
+      min-height: 100px;
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.15rem;
+      line-height: 1.55;
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid var(--border);
+      border-radius: 0;
+      padding: 0.5rem 0;
+      color: var(--ink);
+      outline: none;
+      resize: none;
+      transition: border-color 0.25s;
+    }
+    textarea:focus { border-bottom-color: var(--accent2); }
+    textarea::placeholder { color: rgba(15,14,12,0.3); font-style: italic; }
+
+    .controls {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 1.5rem; flex-wrap: wrap; gap: 1rem;
+    }
+    .count-select-wrap {
+      display: flex; align-items: center; gap: 0.75rem;
+    }
+    select {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.8rem;
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 0.45rem 0.75rem;
+      color: var(--ink);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .btn-search {
+      display: flex; align-items: center; gap: 0.6rem;
+      background: var(--ink);
+      color: var(--paper);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      border: none;
+      border-radius: 3px;
+      padding: 0.75rem 1.75rem;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .btn-search:hover { background: var(--accent2); }
+    .btn-search:active { transform: scale(0.98); }
+    .btn-search:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-search svg { width: 14px; height: 14px; }
+
+    /* ── STATUS / PROGRESS ── */
+    .status-bar {
+      display: none;
+      align-items: center; gap: 0.75rem;
+      padding: 1rem 1.5rem;
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      margin-bottom: 2rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+    .status-bar.visible { display: flex; }
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── RESULTS ── */
+    #results { display: none; }
+    #results.visible { display: block; }
+
+    .results-header {
+      display: flex; align-items: baseline; gap: 1rem;
+      margin-bottom: 1.75rem; padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .results-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.5rem;
+      font-weight: 400;
+    }
+    .results-count {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+    }
+
+    .claim-echo {
+      background: var(--ink);
+      color: var(--paper);
+      border-radius: 3px;
+      padding: 1rem 1.5rem;
+      margin-bottom: 2rem;
+      font-family: 'DM Serif Display', serif;
+      font-size: 1rem;
+      font-style: italic;
+      line-height: 1.55;
+      position: relative;
+    }
+    .claim-echo::before {
+      content: '"';
+      position: absolute; top: 0.2rem; left: 0.9rem;
+      font-size: 3rem;
+      color: rgba(245,240,232,0.15);
+      font-family: 'DM Serif Display', serif;
+      line-height: 1;
+    }
+
+    .article-list { display: flex; flex-direction: column; gap: 1.5rem; }
+
+    .article-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+      box-shadow: 0 1px 6px var(--shadow);
+      animation: fadeUp 0.35s ease both;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .card-header {
+      display: flex; align-items: flex-start; gap: 1rem;
+      padding: 1.25rem 1.5rem 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .card-num {
+      flex-shrink: 0;
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--ink);
+      color: var(--paper);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      margin-top: 2px;
+    }
+    .card-meta { flex: 1; }
+    .card-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.05rem;
+      font-weight: 400;
+      line-height: 1.35;
+      margin-bottom: 0.4rem;
+      color: var(--ink);
+    }
+    .card-info {
+      display: flex; flex-wrap: wrap; gap: 0.5rem 1.2rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--muted);
+    }
+    .tag-source {
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 2px;
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .tag-scholar { background: #e8f0fe; color: #1a4a6b; }
+    .tag-researchgate { background: #fde8e8; color: #c0392b; }
+    .tag-other { background: #f0f0e8; color: #5a5040; }
+
+    .card-body { padding: 1.25rem 1.5rem; }
+    .support-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 0.5rem;
+    }
+    .support-text {
+      font-size: 0.93rem;
+      line-height: 1.65;
+      color: #2a2520;
+    }
+
+    .card-footer {
+      padding: 0.9rem 1.5rem;
+      background: var(--cream);
+      border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 0.5rem;
+    }
+    .card-link {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--accent2);
+      text-decoration: none;
+      word-break: break-all;
+      transition: color 0.2s;
+    }
+    .card-link:hover { color: var(--accent); text-decoration: underline; }
+    .copy-btn {
+      flex-shrink: 0;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 0.3rem 0.65rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .copy-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+    .copy-btn.copied { color: #2a7a2a; border-color: #2a7a2a; }
+
+    /* ── ERROR ── */
+    .error-box {
+      display: none;
+      background: #fdf0f0;
+      border: 1px solid #f0c0c0;
+      border-radius: 4px;
+      padding: 1.25rem 1.5rem;
+      color: var(--accent);
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
+    }
+    .error-box.visible { display: block; }
+    .error-box strong { font-family: 'DM Mono', monospace; font-size: 0.75rem; display: block; margin-bottom: 0.4rem; letter-spacing: 0.1em; }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align: center;
+      padding: 2rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      border-top: 1px solid var(--border);
+    }
+
+    @media (max-width: 600px) {
+      .api-section { flex-direction: column; align-items: flex-start; }
+      .controls { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo-line"><span class="logo-dot"></span> Research Finder</div>
+    <h1>Find articles that <em>support</em><br>your claim</h1>
+    <p class="subtitle">Enter any sentence or hypothesis. We'll consult Gemini's knowledge base to extract and map highly relevant supporting scientific literature.</p>
+  </div>
+</header>
+
+<main>
+
+  <!-- API Key -->
+  <div class="api-section">
+    <span class="api-label">Gemini API Key</span>
+    <div class="api-input-wrap">
+      <input type="password" class="api-input" id="apiKey" placeholder="AIzaSy..." autocomplete="off" />
+    </div>
+    <span class="api-status" id="apiStatus">Not set</span>
+  </div>
+
+  <!-- Search -->
+  <div class="search-card">
+    <label class="field-label" for="claim">Your claim or sentence</label>
+    <textarea id="claim" placeholder="e.g. Regular aerobic exercise significantly reduces symptoms of depression in adults…"></textarea>
+
+    <div class="controls">
+      <div class="count-select-wrap">
+        <span class="field-label" style="margin:0">Articles to find</span>
+        <select id="articleCount">
+          <option value="3">3 articles</option>
+          <option value="5" selected>5 articles</option>
+          <option value="8">8 articles</option>
+          <option value="10">10 articles</option>
+        </select>
+      </div>
+      <button class="btn-search" id="searchBtn" onclick="runSearch()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        Search Literature
+      </button>
+    </div>
+  </div>
+
+  <!-- Status -->
+  <div class="status-bar" id="statusBar">
+    <div class="spinner"></div>
+    <span id="statusText">Querying Gemini Knowledge Base…</span>
+  </div>
+
+  <!-- Error -->
+  <div class="error-box" id="errorBox">
+    <strong>Error</strong>
+    <span id="errorMsg"></span>
+  </div>
+
+  <!-- Results -->
+  <div id="results">
+    <div class="results-header">
+      <span class="results-title">Supporting Articles</span>
+      <span class="results-count" id="resultsCount"></span>
+    </div>
+    <div class="claim-echo" id="claimEcho"></div>
+    <div class="article-list" id="articleList"></div>
+  </div>
+
+</main>
+
+<footer>Research Finder · Powered by Gemini API · Verify all academic results independently</footer>
+
+<script>
+  // ── API Key state ──
+  const apiKeyInput = document.getElementById('apiKey');
+  const apiStatus   = document.getElementById('apiStatus');
+
+  apiKeyInput.addEventListener('input', () => {
+    const val = apiKeyInput.value.trim();
+    if (val.startsWith('AIzaSy') && val.length > 10) {
+      apiStatus.textContent = '✓ Key set';
+      apiStatus.className = 'api-status ok';
+    } else if (val.length > 0) {
+      apiStatus.textContent = 'Invalid format';
+      apiStatus.className = 'api-status';
+    } else {
+      apiStatus.textContent = 'Not set';
+      apiStatus.className = 'api-status';
+    }
+  });
+
+  // ── UI helpers ──
+  function setStatus(msg) {
+    document.getElementById('statusText').textContent = msg;
+    document.getElementById('statusBar').className = 'status-bar visible';
+  }
+  function hideStatus() {
+    document.getElementById('statusBar').className = 'status-bar';
+  }
+  function showError(msg) {
+    const box = document.getElementById('errorBox');
+    document.getElementById('errorMsg').textContent = msg;
+    box.className = 'error-box visible';
+  }
+  function hideError() {
+    document.getElementById('errorBox').className = 'error-box';
+  }
+
+  // ── Source tag ──
+  function sourceTag(url) {
+    if (!url) return '';
+    const u = url.toLowerCase();
+    if (u.includes('scholar.google') || u.includes('googlescholar')) {
+      return '<span class="tag-source tag-scholar">Google Scholar</span>';
+    }
+    if (u.includes('researchgate')) {
+      return '<span class="tag-source tag-researchgate">ResearchGate</span>';
+    }
+    return '<span class="tag-source tag-other">Academic</span>';
+  }
+
+  // ── Render articles ──
+  function renderArticles(articles, claim) {
+    document.getElementById('claimEcho').textContent = claim;
+    document.getElementById('resultsCount').textContent = `${articles.length} result${articles.length !== 1 ? 's' : ''} found`;
+
+    const list = document.getElementById('articleList');
+    list.innerHTML = '';
+
+    articles.forEach((art, i) => {
+      const delay = i * 0.07;
+      const card = document.createElement('div');
+      card.className = 'article-card';
+      card.style.animationDelay = `${delay}s`;
+
+      const linkHtml = art.url
+        ? `<a href="${art.url}" target="_blank" rel="noopener" class="card-link">${art.url}</a>`
+        : `<span class="card-link" style="color:var(--muted);font-style:italic">Link not available</span>`;
+
+      card.innerHTML = `
+        <div class="card-header">
+          <div class="card-num">${i + 1}</div>
+          <div class="card-meta">
+            <div class="card-title">${art.title || 'Untitled Article'}</div>
+            <div class="card-info">
+              ${art.authors ? `<span>${art.authors}</span>` : ''}
+              ${art.year    ? `<span>${art.year}</span>` : ''}
+              ${art.journal ? `<span><em>${art.journal}</em></span>` : ''}
+              ${sourceTag(art.url)}
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="support-label">How it supports your claim</div>
+          <div class="support-text">${art.support || 'See article for details.'}</div>
+        </div>
+        <div class="card-footer">
+          ${linkHtml}
+          ${art.url ? `<button class="copy-btn" onclick="copyLink(this, '${art.url}')">Copy link</button>` : ''}
+        </div>
+      `;
+      list.appendChild(card);
+    });
+
+    document.getElementById('results').className = 'visible';
+  }
+
+  // ── Copy link ──
+  function copyLink(btn, url) {
+    navigator.clipboard.writeText(url).then(() => {
+      btn.textContent = 'Copied!';
+      btn.className = 'copy-btn copied';
+      setTimeout(() => { btn.textContent = 'Copy link'; btn.className = 'copy-btn'; }, 1800);
+    });
+  }
+
+  // ── Main search ──
+  async function runSearch() {
+    hideError();
+    document.getElementById('results').className = '';
+
+    const apiKey = apiKeyInput.value.trim();
+    const claim  = document.getElementById('claim').value.trim();
+    const count  = parseInt(document.getElementById('articleCount').value, 10);
+
+    if (!apiKey || !apiKey.startsWith('AIzaSy')) {
+      showError('Please enter a valid Gemini API key (starts with AIzaSy).');
+      return;
+    }
+    if (!claim) {
+      showError('Please enter a claim or sentence to search for.');
+      return;
+    }
+
+    const btn = document.getElementById('searchBtn');
+    btn.disabled = true;
+    setStatus('Analyzing literature layout with Gemini...');
+
+    // System prompt setting structure goals
+    const systemPrompt = `You are a research librarian expert. Your job is to find real, existing academic articles that support a given claim.
+
+For each article found, return a JSON array (and ONLY a JSON array, no markdown fences, no preamble, no tailing data) with this exact structure:
+[
+  {
+    "title": "Full article title",
+    "authors": "Author names",
+    "year": "Publication year",
+    "journal": "Journal or conference name",
+    "url": "Direct reference URL to the article on Google Scholar or ResearchGate",
+    "support": "2-4 sentence explanation of how this specific article supports the given claim, citing specific findings or conclusions from the paper"
+  }
+]
+
+Rules:
+- Return EXACTLY ${count} articles if possible.
+- Only return real articles that actually exist — do NOT invent or hallucinate any article data.
+- Supply high-quality direct URLs matching Google Scholar or ResearchGate format.
+- The "support" field must be specific and detailed, mentioning actual findings.
+- Return ONLY the clean JSON array content.`;
+
+    const userPrompt = `Find ${count} real academic articles that support this claim:\n\n"${claim}"\n\nReturn only the JSON array layout as specified.`;
+
+    try {
+      setStatus('Querying Gemini Engine...');
+
+      // Target the Gemini 2.5 Flash model
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{ text: systemPrompt + "\n\n" + userPrompt }]
+          }],
+          generationConfig: {
+            // Force the API to output strict JSON text 
+            responseMimeType: "application/json"
+          }
+        })
+      });
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error?.message || `API error ${response.status}`);
+      }
+
+      setStatus('Parsing scientific records...');
+      const data = await response.json();
+
+      // Navigate Google's content layout tree
+      const candidate = data.candidates?.[0];
+      const fullText = candidate?.content?.parts?.[0]?.text;
+
+      if (!fullText) {
+        throw new Error('Empty response received from the Gemini Engine. Try checking your parameters.');
+      }
+
+      // Safeguard cleaning steps
+      const cleaned = fullText
+        .replace(/```json\s*/gi, '')
+        .replace(/```\s*/g, '')
+        .trim();
+
+      const match = cleaned.match(/\[[\s\S]*\]/);
+      if (!match) throw new Error('No clean JSON array could be isolated from Gemini response structures.');
+
+      const articles = JSON.parse(match[0]);
+      if (!Array.isArray(articles) || articles.length === 0) {
+        throw new Error('Zero articles mapped. Try adjusting the scope of your hypothesis sentence.');
+      }
+
+      hideStatus();
+      renderArticles(articles, claim);
+
+    } catch (err) {
+      hideStatus();
+      showError(err.message || 'An unexpected error or parsing conflict occurred. Verify your API credentials.');
+      console.error(err);
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // Allow Ctrl+Enter to submit
+  document.getElementById('claim').addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') runSearch();
+  });
+</script>
+</body>
+</html>
