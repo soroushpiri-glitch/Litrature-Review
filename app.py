@@ -125,7 +125,6 @@ st.markdown("""
         margin-left: 0.5rem;
     }
     .tag-scholar { background: #e8f0fe; color: #1a4a6b; }
-    .tag-researchgate { background: #fde8e8; color: #c0392b; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -163,33 +162,23 @@ if search_clicked:
         st.error("Please enter a claim or sentence to search for.")
     else:
         with st.spinner("Analyzing literature layout with Gemini..."):
-            system_prompt = f"""You are a research librarian expert. Your job is to find real, existing academic articles that support a given claim.
+            system_prompt = f"""You are an elite academic research assistant. Your task is to identify highly relevant, real scientific papers that present empirical support for the user's claim.
 
-For each article found, return a JSON array (and ONLY a JSON array, no markdown fences, no preamble, no tailing data) with this exact structure:
+For each paper, compile a JSON array containing exactly {count} entries. Do not include markdown wraps, code block tokens, or notes. Use this structure:
 [
   {{
-    "title": "Full article title",
-    "authors": "Author names",
-    "year": "Publication year",
-    "journal": "Journal or conference name",
-    "support": "2-4 sentence explanation of how this specific article supports the given claim, citing specific findings or conclusions from the paper"
+    "title": "Exact title of the paper or highly accurate keyword approximation",
+    "authors": "Primary authors (Last names separated by commas)",
+    "year": "YYYY",
+    "journal": "Full name of publication venue or journal",
+    "support": "A detailed 2-3 sentence overview explaining exactly how the statistical findings or conceptual arguments of this study validate the user's statement."
   }}
-]
+]"""
 
-Rules:
-- Return EXACTLY {count} articles if possible.
-- Only return real articles that actually exist — do NOT invent or hallucinate any article data.
-- The "support" field must be specific and detailed, mentioning actual findings.
-- Return ONLY the clean JSON array content."""
-
-            user_prompt = f'Find {count} real academic articles that support this claim:\n\n"{claim}"\n\nReturn only the JSON array layout as specified.'
+            user_prompt = f'Provide empirical support data for this assertion:\n\n"{claim}"'
             
             try:
-                # Target the Gemini API
-                endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${api_key}" if "$" not in api_key else f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
-                # Clean edge cases
-                endpoint = endpoint.replace('$', '')
-                
+                endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
                 payload = {
                     "contents": [{
                         "parts": [{"text": system_prompt + "\n\n" + user_prompt}]
@@ -220,15 +209,21 @@ Rules:
                         
                         for i, art in enumerate(articles):
                             title = art.get('title', 'Untitled')
+                            authors = art.get('authors', '')
+                            year = art.get('year', '')
+                            journal = art.get('journal', '')
                             
-                            # ── DYNAMIC LINK GENERATION FIX ──
-                            # We create an absolute target link using the 'allintitle' operator to find the exact article
-                            encoded_title = urllib.parse.quote_plus(f'allintitle:"{title}"')
-                            scholar_url = f"https://scholar.google.com/scholar?q={encoded_title}"
+                            # ── FIXED SMART SEARCH BACKEND LINKAGE ──
+                            # Instead of forcing an exact title match which completely breaks if an LLM paraphrases, 
+                            # we combine title words + author names + year into a natural search string. 
+                            # This lets Google Scholar's fuzzy search engine find the real paper seamlessly.
+                            search_query = f"{title} {authors} {year}"
+                            encoded_query = urllib.parse.quote_plus(search_query)
+                            scholar_url = f"https://scholar.google.com/scholar?q={encoded_query}"
                             
                             badge = '<span class="tag-source tag-scholar">Google Scholar</span>'
-                            meta_info = f"{art.get('authors', '')} | {art.get('year', '')} | <em>{art.get('journal', '')}</em> {badge}"
-                            link_html = f'<a href="{scholar_url}" target="_blank" class="card-link">View Source Article →</a>'
+                            meta_info = f"{authors} | {year} | <em>{journal}</em> {badge}"
+                            link_html = f'<a href="{scholar_url}" target="_blank" class="card-link">Search via Google Scholar →</a>'
                             
                             st.markdown(f"""
                             <div class="article-card">
