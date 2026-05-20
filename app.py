@@ -132,9 +132,14 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
+# ── API KEY SECURE CHECK (SECRETS VS INPUT) ──
+if "GEMINI_API_KEY" in st.secrets and st.secrets["GEMINI_API_KEY"].strip() != "":
+    api_key = st.secrets["GEMINI_API_KEY"]
+else:
+    # Fallback text input field if Secrets aren't used yet
+    api_key = st.text_input("Gemini API Key", type="password", placeholder="AIzaSy...")
+
 # ── STREAMLIT NATIVE INPUT CONTROLS ──
-# Sidebar or top elements for API keys
-api_key = st.text_input("Gemini API Key", type="password", placeholder="AIzaSy...")
 claim = st.text_area("Your claim or sentence", placeholder="e.g. Regular aerobic exercise significantly reduces symptoms of depression in adults…")
 
 col1, col2 = st.columns([1, 1])
@@ -157,8 +162,8 @@ def get_source_badge(url):
 
 # ── LOGIC PROCESSING VIA GEMINI ──
 if search_clicked:
-    if not api_key.startswith("AIzaSy"):
-        st.error("Please enter a valid Gemini API key (starts with AIzaSy).")
+    if not api_key or not api_key.startswith("AIzaSy"):
+        st.error("Please enter a valid Gemini API key or add GEMINI_API_KEY to your Streamlit Secrets.")
     elif not claim.strip():
         st.error("Please enter a claim or sentence to search for.")
     else:
@@ -206,9 +211,8 @@ Rules:
                     data = response.json()
                     full_text = data['candidates'][0]['content']['parts'][0]['text']
                     
-                    # Clean out markdown text artifacts if any leaked through
-                    cleaned = full_text.replace("```json", "").replace("
-```", "").strip()
+                    # Clean out markdown text artifacts if any leaked through (Syntax Error Fixed Here)
+                    cleaned = full_text.replace("```json", "").replace("```", "").strip()
                     match = re.search(r'\[[\s\S]*\]', cleaned)
                     
                     if not match:
