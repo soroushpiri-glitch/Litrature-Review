@@ -143,7 +143,7 @@ claim = st.text_area("Your claim or sentence", placeholder="e.g. Regular aerobic
 
 col1, col2 = st.columns([1, 1])
 with col1:
-    count = st.selectbox("Articles to find", options=[3, 5, 8], index=0)
+    count = st.selectbox("Articles to find", options=[1,2,3, 4, 5,6,7,8,9,10,11,12,13,14,15], index=0)
 with col2:
     st.write(" ") 
     st.write(" ") 
