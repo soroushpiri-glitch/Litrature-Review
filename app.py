@@ -178,7 +178,7 @@ For each paper, compile a JSON array containing exactly {count} entries. Do not 
             user_prompt = f'Provide empirical support data for this assertion:\n\n"{claim}"'
             
             try:
-               endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key={api_key}"
+                endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key={api_key}"
                 payload = {
                     "contents": [{
                         "parts": [{"text": system_prompt + "\n\n" + user_prompt}]
